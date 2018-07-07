@@ -512,8 +512,7 @@ class BareValidator(object):
     def root_require_all(self):
         """ The :attr:`~cerberus.Validator.require_all` attribute of
             the first level ancestor of a child validator. """
-        return self._config.get('root_require_all',
-                                self.require_all)
+        return self._config.get('root_require_all', self.require_all)
 
     @property
     def root_document(self):
@@ -1164,9 +1163,8 @@ class BareValidator(object):
         if self.schema[field].get('required', self.require_all):
             self._unrequired_by_excludes.add(field)
         for exclude in excludes:
-            if (
-                exclude in self.schema
-                and self.schema[exclude].get('required', self.require_all)
+            if exclude in self.schema and self.schema[exclude].get(
+                'required', self.require_all
             ):
 
                 self._unrequired_by_excludes.add(exclude)
@@ -1355,7 +1353,8 @@ class BareValidator(object):
             required = set(
                 field
                 for field, definition in self.schema.items()
-                if self._resolve_rules_set(definition).get('required', self.require_all) is True
+                if self._resolve_rules_set(definition).get('required', self.require_all)
+                is True
             )
         except AttributeError:
             if self.is_child and self.schema_path[-1] == 'schema':
