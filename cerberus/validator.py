@@ -84,6 +84,9 @@ class BareValidator(object):
     :param allow_unknown: See :attr:`~cerberus.Validator.allow_unknown`.
                           Defaults to ``False``.
     :type allow_unknown: :class:`bool` or any :term:`mapping`
+    :param require_all: See :attr:`~cerberus.Validator.require_all`.
+                          Defaults to ``False``.
+    :type require_all: :class:`bool`
     :param purge_unknown: See :attr:`~cerberus.Validator.purge_unknown`.
                           Defaults to to ``False``.
     :type purge_unknown: :class:`bool`
@@ -132,7 +135,8 @@ class BareValidator(object):
         """ The arguments will be treated as with this signature:
 
         __init__(self, schema=None, ignore_none_values=False,
-                 allow_unknown=False, purge_unknown=False, purge_readonly=False,
+                 allow_unknown=False, require_all=False,
+                 purge_unknown=False, purge_readonly=False,
                  error_handler=errors.BasicErrorHandler)
         """
 
@@ -169,6 +173,7 @@ class BareValidator(object):
         self.__store_config(args, kwargs)
         self.schema = kwargs.get('schema', None)
         self.allow_unknown = kwargs.get('allow_unknown', False)
+        self.require_all = kwargs.get('require_all', False)
         self._remaining_rules = []
         """ Keeps track of the rules that are next in line to be evaluated
             during the validation of a field.
@@ -198,6 +203,7 @@ class BareValidator(object):
             'schema',
             'ignore_none_values',
             'allow_unknown',
+            'require_all',
             'purge_unknown',
             'purge_readonly',
         )
@@ -281,7 +287,7 @@ class BareValidator(object):
                 if rule == 'nullable':
                     constraint = field_definitions.get(rule, False)
                 else:
-                    constraint = field_definitions[rule]
+                    constraint = field_definitions.get(rule)
 
             value = self.document.get(field)
 
@@ -314,6 +320,7 @@ class BareValidator(object):
             child_config['is_child'] = True
             child_config['error_handler'] = toy_error_handler
             child_config['root_allow_unknown'] = self.allow_unknown
+            child_config['root_require_all'] = self.require_all
             child_config['root_document'] = self.document
             child_config['root_schema'] = self.schema
 
@@ -429,6 +436,19 @@ class BareValidator(object):
         self._config['allow_unknown'] = value
 
     @property
+    def require_all(self):
+        """ If ``True`` known fields that are defined in the schema will
+            be required.
+            Type: :class:`bool` """
+        return self._config.get('require_all', False)
+
+    @require_all.setter
+    def require_all(self, value):
+        if not (self.is_child or isinstance(value, (bool, DefinitionSchema))):
+            DefinitionSchema(self, {'require_all': value})
+        self._config['require_all'] = value
+
+    @property
     def errors(self):
         """ The errors of the last processing formatted by the handler that is
             bound to :attr:`~cerberus.Validator.error_handler`. """
@@ -487,6 +507,13 @@ class BareValidator(object):
         """ The :attr:`~cerberus.Validator.allow_unknown` attribute of the
             first level ancestor of a child validator. """
         return self._config.get('root_allow_unknown', self.allow_unknown)
+
+    @property
+    def root_require_all(self):
+        """ The :attr:`~cerberus.Validator.require_all` attribute of
+            the first level ancestor of a child validator. """
+        return self._config.get('root_require_all',
+                                self.require_all)
 
     @property
     def root_document(self):
@@ -1134,13 +1161,12 @@ class BareValidator(object):
             excludes = [excludes]
 
         # Save required field to be checked latter
-        if 'required' in self.schema[field] and self.schema[field]['required']:
+        if self.schema[field].get('required', self.require_all):
             self._unrequired_by_excludes.add(field)
         for exclude in excludes:
             if (
                 exclude in self.schema
-                and 'required' in self.schema[exclude]
-                and self.schema[exclude]['required']
+                and self.schema[exclude].get('required', self.require_all)
             ):
 
                 self._unrequired_by_excludes.add(exclude)
@@ -1329,7 +1355,7 @@ class BareValidator(object):
             required = set(
                 field
                 for field, definition in self.schema.items()
-                if self._resolve_rules_set(definition).get('required') is True
+                if self._resolve_rules_set(definition).get('required', self.require_all) is True
             )
         except AttributeError:
             if self.is_child and self.schema_path[-1] == 'schema':
