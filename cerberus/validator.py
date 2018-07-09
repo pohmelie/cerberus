@@ -85,7 +85,7 @@ class BareValidator(object):
                           Defaults to ``False``.
     :type allow_unknown: :class:`bool` or any :term:`mapping`
     :param require_all: See :attr:`~cerberus.Validator.require_all`.
-                          Defaults to ``False``.
+                        Defaults to ``False``.
     :type require_all: :class:`bool`
     :param purge_unknown: See :attr:`~cerberus.Validator.purge_unknown`.
                           Defaults to to ``False``.
@@ -286,8 +286,10 @@ class BareValidator(object):
                 field_definitions = self._resolve_rules_set(self.schema[field])
                 if rule == 'nullable':
                     constraint = field_definitions.get(rule, False)
+                elif rule == 'required':
+                    constraint = field_definitions.get(rule, self.require_all)
                 else:
-                    constraint = field_definitions.get(rule)
+                    constraint = field_definitions[rule]
 
             value = self.document.get(field)
 
@@ -444,8 +446,6 @@ class BareValidator(object):
 
     @require_all.setter
     def require_all(self, value):
-        if not (self.is_child or isinstance(value, (bool, DefinitionSchema))):
-            DefinitionSchema(self, {'require_all': value})
         self._config['require_all'] = value
 
     @property
