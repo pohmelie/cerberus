@@ -1830,3 +1830,50 @@ def test_contains(constraint):
         errors.MISSING_MEMBERS
     ].info[0]
     assert any(x in missing_actors for x in ('Eric Idle', 'Terry Gilliam'))
+
+
+def test_require_all_simple():
+    v = Validator({'foo': {'type': 'string'}}, require_all=True)
+    assert not v({})
+    assert v({'foo': 'bar'})
+    v.require_all = False
+    assert v({})
+    assert v({'foo': 'bar'})
+
+
+def test_require_all_override():
+    v = Validator({'foo': {'type': 'string', 'required': False}}, require_all=True)
+    assert v({})
+    assert v({'foo': 'bar'})
+    v.require_all = False
+    assert v({})
+    assert v({'foo': 'bar'})
+    v = Validator({'foo': {'type': 'string', 'required': True}}, require_all=True)
+    assert not v({})
+    assert v({'foo': 'bar'})
+    v.require_all = False
+    assert not v({})
+    assert v({'foo': 'bar'})
+
+
+def test_require_all_and_exclude():
+    schema = {
+        'foo': {'type': 'string', 'excludes': 'bar'},
+        'bar': {'type': 'string', 'excludes': 'foo'},
+    }
+    v = Validator(schema, require_all=True)
+    assert not v({})
+    assert v({'foo': 'value'})
+    assert v({'bar': 'value'})
+    assert not v({'foo': 'value', 'bar': 'value'})
+    v.require_all = False
+    assert v({})
+    assert v({'foo': 'value'})
+    assert v({'bar': 'value'})
+    assert not v({'foo': 'value', 'bar': 'value'})
+
+
+def test_require_all_errors():
+    v = Validator({'foo': {'type': 'string'}}, require_all=True)
+    assert not v({})
+    assert v.errors == {'foo': ['required field']}
