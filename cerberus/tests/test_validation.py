@@ -1841,27 +1841,46 @@ def test_contains(constraint):
 
 
 def test_require_all_simple():
-    v = Validator({'foo': {'type': 'string'}}, require_all=True)
-    assert not v({})
-    assert v({'foo': 'bar'})
-    v.require_all = False
-    assert v({})
-    assert v({'foo': 'bar'})
+    schema = {'foo': {'type': 'string'}}
+    validator = Validator(require_all=True)
+    assert_fail(
+        {},
+        schema,
+        validator,
+        error=('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
+    )
+    assert_success({'foo': 'bar'}, schema, validator)
+    validator.require_all = False
+    assert_success({}, schema, validator)
+    assert_success({'foo': 'bar'}, schema, validator)
 
 
 def test_require_all_override():
-    v = Validator({'foo': {'type': 'string', 'required': False}}, require_all=True)
-    assert v({})
-    assert v({'foo': 'bar'})
-    v.require_all = False
-    assert v({})
-    assert v({'foo': 'bar'})
-    v = Validator({'foo': {'type': 'string', 'required': True}}, require_all=True)
-    assert not v({})
-    assert v({'foo': 'bar'})
-    v.require_all = False
-    assert not v({})
-    assert v({'foo': 'bar'})
+    schema = {'foo': {'type': 'string', 'required': False}}
+    validator = Validator(require_all=True)
+    assert_success({}, schema, validator)
+    assert_success({'foo': 'bar'}, schema, validator)
+    validator.require_all = False
+    assert_success({}, schema, validator)
+    assert_success({'foo': 'bar'}, schema, validator)
+
+    schema = {'foo': {'type': 'string', 'required': True}}
+    validator.require_all = True
+    assert_fail(
+        {},
+        schema,
+        validator,
+        error=('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
+    )
+    assert_success({'foo': 'bar'}, schema, validator)
+    validator.require_all = False
+    assert_fail(
+        {},
+        schema,
+        validator,
+        error=('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
+    )
+    assert_success({'foo': 'bar'}, schema, validator)
 
 
 def test_require_all_and_exclude():
@@ -1869,19 +1888,21 @@ def test_require_all_and_exclude():
         'foo': {'type': 'string', 'excludes': 'bar'},
         'bar': {'type': 'string', 'excludes': 'foo'},
     }
-    v = Validator(schema, require_all=True)
-    assert not v({})
-    assert v({'foo': 'value'})
-    assert v({'bar': 'value'})
-    assert not v({'foo': 'value', 'bar': 'value'})
-    v.require_all = False
-    assert v({})
-    assert v({'foo': 'value'})
-    assert v({'bar': 'value'})
-    assert not v({'foo': 'value', 'bar': 'value'})
-
-
-def test_require_all_errors():
-    v = Validator({'foo': {'type': 'string'}}, require_all=True)
-    assert not v({})
-    assert v.errors == {'foo': ['required field']}
+    validator = Validator(require_all=True)
+    assert_fail(
+        {},
+        schema,
+        validator,
+        errors=[
+            ('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
+            ('bar', ('bar', 'required'), errors.REQUIRED_FIELD, True),
+        ],
+    )
+    assert_success({'foo': 'value'}, schema, validator)
+    assert_success({'bar': 'value'}, schema, validator)
+    assert_fail({'foo': 'value', 'bar': 'value'}, schema, validator)
+    validator.require_all = False
+    assert_success({}, schema, validator)
+    assert_success({'foo': 'value'}, schema, validator)
+    assert_success({'bar': 'value'}, schema, validator)
+    assert_fail({'foo': 'value', 'bar': 'value'}, schema, validator)
