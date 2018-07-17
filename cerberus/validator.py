@@ -288,6 +288,8 @@ class BareValidator(object):
                     constraint = field_definitions.get(rule, False)
                 elif rule == 'required':
                     constraint = field_definitions.get(rule, self.require_all)
+                    if rule not in field_definitions:
+                        schema_path = "__require_all__"
                 else:
                     constraint = field_definitions[rule]
 

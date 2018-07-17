@@ -1847,7 +1847,7 @@ def test_require_all_simple():
         {},
         schema,
         validator,
-        error=('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
+        error=('foo', '__require_all__', errors.REQUIRED_FIELD, True),
     )
     assert_success({'foo': 'bar'}, schema, validator)
     validator.require_all = False
@@ -1894,8 +1894,8 @@ def test_require_all_and_exclude():
         schema,
         validator,
         errors=[
-            ('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
-            ('bar', ('bar', 'required'), errors.REQUIRED_FIELD, True),
+            ('foo', '__require_all__', errors.REQUIRED_FIELD, True),
+            ('bar', '__require_all__', errors.REQUIRED_FIELD, True),
         ],
     )
     assert_success({'foo': 'value'}, schema, validator)
