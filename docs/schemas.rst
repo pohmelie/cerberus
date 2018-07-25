@@ -15,7 +15,8 @@ which is expected to be a string not longer than 10 characters. Something like
 very long string'}`` or ``{'name': 99}`` would not.
 
 By default all keys in a document are optional unless the :ref:`required`-rule
-is set for a key.
+is set for a key or validator attribute :attr:`~cerberus.Validator.require_all`
+is set.
 
 
 Registries
