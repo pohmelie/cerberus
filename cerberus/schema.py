@@ -67,6 +67,7 @@ class DefinitionSchema(MutableMapping):
         self.schema_validator = SchemaValidator(
             None,
             allow_unknown=self.validation_schema,
+            require_all=self.validation_schema,
             error_handler=errors.SchemaErrorHandler,
             target_schema=schema,
             target_validator=validator,
@@ -275,6 +276,7 @@ class SchemaValidationSchema(UnvalidatedSchema):
     def __init__(self, validator):
         self.schema = {
             'allow_unknown': False,
+            'require_all': False,
             'schema': validator.rules,
             'type': 'dict',
         }

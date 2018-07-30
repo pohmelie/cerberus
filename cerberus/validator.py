@@ -798,6 +798,7 @@ class BareValidator(object):
             schema=rules.get('schema', {}),
             allow_unknown=rules.get('allow_unknown', self.allow_unknown),  # noqa: E501
             purge_unknown=rules.get('purge_unknown', self.purge_unknown),
+            require_all=rules.get('require_all', self.require_all),
         )  # noqa: E501
         value_type = type(mapping[field])
         result_value = validator.normalized(mapping[field], always_return_document=True)
@@ -1047,7 +1048,7 @@ class BareValidator(object):
             for x in definitions
             if x not in rules_queue
             and x not in self.normalization_rules
-            and x not in ('allow_unknown', 'required')
+            and x not in ('allow_unknown', 'require_all', 'required')
         )
         self._remaining_rules = rules_queue
 
@@ -1071,6 +1072,7 @@ class BareValidator(object):
                        {'type': ['dict', 'string'],
                         'check_with': 'bulk_schema'}]} """
     )
+    _validate_require_all = dummy_for_rule_validation("{'type': 'boolean'}")
 
     def _validate_allowed(self, allowed_values, field, value):
         """ {'type': 'container'} """
@@ -1425,11 +1427,13 @@ class BareValidator(object):
     def __validate_schema_mapping(self, field, schema, value):
         schema = self._resolve_schema(schema)
         allow_unknown = self.schema[field].get('allow_unknown', self.allow_unknown)
+        require_all = self.schema[field].get('require_all', self.require_all)
         validator = self._get_child_validator(
             document_crumb=field,
             schema_crumb=(field, 'schema'),
             schema=schema,
             allow_unknown=allow_unknown,
+            require_all=require_all,
         )
         try:
             if not validator(value, update=self.update, normalize=False):

@@ -1855,7 +1855,7 @@ def test_require_all_simple():
     assert_success({'foo': 'bar'}, schema, validator)
 
 
-def test_require_all_override():
+def test_require_all_override_by_required():
     schema = {'foo': {'type': 'string', 'required': False}}
     validator = Validator(require_all=True)
     assert_success({}, schema, validator)
@@ -1881,6 +1881,20 @@ def test_require_all_override():
         error=('foo', ('foo', 'required'), errors.REQUIRED_FIELD, True),
     )
     assert_success({'foo': 'bar'}, schema, validator)
+
+
+def test_require_all_override_by_subdoc_require_all():
+    sub_schema = {'foo': {'type': 'string'}}
+    schema = {'foo': {'type': 'dict', 'require_all': True, 'schema': sub_schema}}
+    validator = Validator(require_all=False)
+    assert_success({'foo': {'foo': 'bar'}}, schema, validator)
+    assert_success({}, schema, validator)
+    assert_fail({'foo': {}}, schema, validator)
+    schema = {'foo': {'type': 'dict', 'require_all': False, 'schema': sub_schema}}
+    validator = Validator(require_all=True)
+    assert_success({'foo': {'foo': 'bar'}}, schema, validator)
+    assert_fail({}, schema, validator)
+    assert_success({'foo': {}}, schema, validator)
 
 
 def test_require_all_and_exclude():
