@@ -641,6 +641,16 @@ library's :mod:`re`-module.
 
 .. versionadded:: 0.7
 
+.. _require_all:
+
+require_all
+-----------
+This can be used in conjunction with the  `schema <schema_dict-rule>`_ rule
+when validating a mapping in order to set the
+:attr:`~cerberus.Validator.require_all` property of the validator for the
+subdocument.
+For a full elaboration refer to :ref:`this paragraph <requiring-all>`.
+
 .. _required:
 
 required

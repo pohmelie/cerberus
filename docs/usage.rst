@@ -162,6 +162,67 @@ mapping that is checked against the :ref:`schema <schema_dict-rule>` rule:
    ``allow_unknown`` can also be set to a validation schema.
 
 
+.. _requiring-all:
+
+Requiring all
+-------------
+By default any keys defined in the schema are not required:
+
+.. doctest::
+
+    >>> schema = {'name': {'type': 'string', 'maxlength': 10}}
+    >>> v.validate({}, schema)
+    True
+
+However, you can require all document keys pairs by either setting
+``require_all`` to ``True``:
+
+.. doctest::
+
+    >>> v.schema = {'name': {'type': 'string', 'maxlength': 10}}
+    >>> v.require_all = True
+    >>> v.validate({})
+    False
+
+``require_all`` can also be set at initialization:
+
+.. doctest::
+
+    >>> v = Validator({'name': {'type': 'string', 'maxlength': 10}}, require_all=True)
+    >>> v.validate({})
+    False
+    >>> v.require_all = False
+    >>> v.validate({})
+    True
+
+``require_all`` can also be set as rule to configure a validator for a nested
+mapping that is checked against the :ref:`schema <schema_dict-rule>` rule:
+
+.. doctest::
+
+    >>> v = Validator()
+    >>> v.require_all
+    False
+
+    >>> schema = {
+    ...   'name': {'type': 'string'},
+    ...   'a_dict': {
+    ...     'type': 'dict',
+    ...     'require_all': True, # this overrides the behaviour for
+    ...     'schema': {          # the validation of this definition
+    ...       'address': {'type': 'string'}
+    ...     }
+    ...   }
+    ... }
+
+    >>> v.validate({'a_dict': {}}, schema)
+    False
+
+    >>> v.validate({'a_dict': {'address': 'foobar'}}, schema)
+    True
+
+.. versionadded:: 1.3
+
 Fetching Processed Documents
 ----------------------------
 
