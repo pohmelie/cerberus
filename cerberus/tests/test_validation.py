@@ -5,6 +5,7 @@ import sys
 from datetime import datetime, date
 from random import choice
 from string import ascii_lowercase
+import itertools
 
 from pytest import mark
 
@@ -1883,18 +1884,32 @@ def test_require_all_override_by_required():
     assert_success({'foo': 'bar'}, schema, validator)
 
 
-def test_require_all_override_by_subdoc_require_all():
-    sub_schema = {'foo': {'type': 'string'}}
-    schema = {'foo': {'type': 'dict', 'require_all': True, 'schema': sub_schema}}
-    validator = Validator(require_all=False)
-    assert_success({'foo': {'foo': 'bar'}}, schema, validator)
-    assert_success({}, schema, validator)
-    assert_fail({'foo': {}}, schema, validator)
-    schema = {'foo': {'type': 'dict', 'require_all': False, 'schema': sub_schema}}
-    validator = Validator(require_all=True)
-    assert_success({'foo': {'foo': 'bar'}}, schema, validator)
-    assert_fail({}, schema, validator)
-    assert_success({'foo': {}}, schema, validator)
+@mark.parametrize(
+    "validator_require_all, sub_doc_require_all",
+    list(itertools.product([True, False], repeat=2)),
+)
+def test_require_all_override_by_subdoc_require_all(
+    validator_require_all, sub_doc_require_all
+):
+    sub_schema = {"bar": {"type": "string"}}
+    schema = {
+        "foo": {
+            "type": "dict",
+            "require_all": sub_doc_require_all,
+            "schema": sub_schema,
+        }
+    }
+    validator = Validator(require_all=validator_require_all)
+
+    assert_success({"foo": {"bar": "baz"}}, schema, validator)
+    if validator_require_all:
+        assert_fail({}, schema, validator)
+    else:
+        assert_success({}, schema, validator)
+    if sub_doc_require_all:
+        assert_fail({"foo": {}}, schema, validator)
+    else:
+        assert_success({"foo": {}}, schema, validator)
 
 
 def test_require_all_and_exclude():

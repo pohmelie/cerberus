@@ -1072,7 +1072,6 @@ class BareValidator(object):
                        {'type': ['dict', 'string'],
                         'check_with': 'bulk_schema'}]} """
     )
-    _validate_require_all = dummy_for_rule_validation("{'type': 'boolean'}")
 
     def _validate_allowed(self, allowed_values, field, value):
         """ {'type': 'container'} """
@@ -1378,6 +1377,8 @@ class BareValidator(object):
             self._error(field, errors.REGEX_MISMATCH)
 
     _validate_required = dummy_for_rule_validation(""" {'type': 'boolean'} """)
+
+    _validate_require_all = dummy_for_rule_validation(""" {'type': 'boolean'} """)
 
     def __validate_required_fields(self, document):
         """ Validates that required fields are not missing.
