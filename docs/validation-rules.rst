@@ -674,7 +674,6 @@ For a full elaboration refer to :ref:`this paragraph <requiring-all>`.
 
 required
 --------
-See also :ref:`this paragraph <requiring-all>`.
 
 If ``True`` the field is mandatory. Validation will fail when it is missing,
 unless :meth:`~cerberus.Validator.validate` is called with ``update=True``:
@@ -690,6 +689,10 @@ unless :meth:`~cerberus.Validator.validate` is called with ``update=True``:
 
     >>> v.validate(document, update=True)
     True
+
+.. note::
+
+   To define all fields of a document as required see :ref:`this paragraph <requiring-all>`.
 
 .. note::
 

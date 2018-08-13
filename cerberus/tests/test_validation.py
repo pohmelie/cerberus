@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import itertools
 import re
 import sys
 from datetime import datetime, date
 from random import choice
 from string import ascii_lowercase
-import itertools
 
 from pytest import mark
 
